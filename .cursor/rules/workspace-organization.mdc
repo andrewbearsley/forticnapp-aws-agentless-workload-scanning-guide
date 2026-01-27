@@ -1,0 +1,100 @@
+---
+alwaysApply: true
+description: Workspace organization best practices. Use when creating new projects, organizing files, or setting up project structure.
+---
+
+# Workspace Organization
+
+Follow this structure for organizing project files and documentation.
+
+## Project Structure
+
+Organize projects with clear separation of concerns:
+
+```
+.
+├── SUMMARY.md              # Project overview, objectives, problem statement, solution
+├── README.md               # Usage instructions, setup, examples
+├── api-key/                # API credentials (if needed)
+│   └── *.json
+├── reference/               # Reference data extracted from APIs/CLI
+│   └── *.json, *.csv
+├── reports/                 # Source reports and data files (PDFs, JSON, etc.)
+│   └── *.pdf, *.json, etc.
+├── scripts/                 # Executable scripts and tools
+│   └── *.py, *.sh, etc.
+└── results/                 # Generated outputs and processed data
+    └── *.md, *.json, *.csv, etc.
+```
+
+## Documentation Files
+
+### SUMMARY.md
+
+Create a `SUMMARY.md` file at the project root that explains:
+- What we're trying to accomplish (objective)
+- Why we're doing it (problem statement)
+- How we're solving it (solution approach)
+- What the output should be (requirements)
+
+Keep it concise and focused on the "what" and "why" rather than implementation details.
+
+### README.md
+
+Create a `README.md` file that provides:
+- Quick overview (can reference SUMMARY.md)
+- Prerequisites and setup
+- Usage instructions with examples
+- Project structure diagram
+- Links to other relevant documentation
+
+Focus on "how to use" rather than "what we're doing".
+
+## Scripts Organization
+
+- Place all executable scripts in a `scripts/` folder
+- Use descriptive script names that indicate their purpose
+- Make scripts executable (`chmod +x`)
+- Include shebang lines for scripts (`#!/usr/bin/env python3`, `#!/bin/bash`)
+- Scripts should handle relative paths correctly (resolve paths relative to script location when needed)
+
+## Reports Organization
+
+- Place source reports and data files in a `reports/` folder
+- Use descriptive, lowercase filenames with hyphens: `aws-cis-4.0.1.pdf`
+- Organize by source or type if needed: `reports/aws/`, `reports/azure/`
+- Keep original downloaded files here before processing
+
+## Results Organization
+
+- Place generated outputs and processed data in a `results/` folder
+- Use descriptive filenames that indicate source and content: `aws-cis-4.0.1-policies.md`
+- Keep processed/extracted data separate from source reports
+- Results are generated artifacts, reports are source materials
+
+## File Naming
+
+- Use lowercase with hyphens for file names: `extract-policy-inventory.py`
+- Use descriptive names that indicate purpose
+- Avoid generic names like `script.py` or `tool.sh`
+
+## When Creating New Projects
+
+1. Create `SUMMARY.md` first to document objectives
+2. Create `README.md` with usage instructions
+3. Create folder structure:
+   - `scripts/` folder for executable tools
+   - `reports/` folder for source data/reports
+   - `results/` folder for generated outputs
+4. Place files in appropriate folders, not project root
+5. Update README with project structure section
+
+## Anti-Patterns to Avoid
+
+- Placing scripts, reports, or results in project root
+- Mixing source files with generated outputs
+- Mixing documentation and code in same directory
+- Creating scripts without clear purpose or documentation
+- Using vague file names
+- Missing project overview (SUMMARY.md)
+- Storing source reports and processed results in the same location
