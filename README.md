@@ -32,12 +32,16 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for AWS E
 
 ## Prerequisites
 
+**Terraform:**
 - [AWS CLI](INSTALL-AWS-CLI.md)
-- [Lacework CLI](INSTALL-LACEWORK-CLI.md) (Terraform only)
-- [Terraform](INSTALL-TERRAFORM.md) (Terraform only)
+- [Lacework CLI](INSTALL-LACEWORK-CLI.md)
+- [Terraform](INSTALL-TERRAFORM.md)
+
+**CloudFormation:**
+- [AWS CLI](INSTALL-AWS-CLI.md) (optional - only needed if using existing VPC)
 
 ## Resources
 
-- [FortiCNAPP Documentation](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/966589/agentless-workload-scanning)
-- [Terraform Module](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest)
-- [Agentless Workload Scanning FAQs](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs)
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/966589/agentless-workload-scanning" target="_blank">FortiCNAPP Documentation</a>
+- <a href="https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest" target="_blank">Terraform Module</a>
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs" target="_blank">Agentless Workload Scanning FAQs</a>

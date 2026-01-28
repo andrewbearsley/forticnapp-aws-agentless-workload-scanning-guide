@@ -4,11 +4,7 @@ This guide covers deploying FortiCNAPP AWS Agentless Workload Scanning using Clo
 
 ## Prerequisites
 
-Install and configure the required tools:
-
-1. **AWS CLI**: [Install and Configure AWS CLI](INSTALL-AWS-CLI.md)
-
-You also need:
+You need:
 - Access to FortiCNAPP UI
 - Permissions for: CloudFormation, IAM, ECS, VPC, S3, CloudWatch, Organizations (read)
 
@@ -56,9 +52,11 @@ CloudFormation templates are generated from the FortiCNAPP UI with account-speci
 
 **Important:** The ExternalId is hardcoded in the template and cannot be changed after generation. It's required for IAM trust relationships with FortiCNAPP.
 
-## Using Existing VPC
+## Using Existing VPC (Optional)
 
 Unlike Terraform, CloudFormation creates a new VPC by default. To use an existing VPC, update the ECS service after deployment.
+
+**Prerequisites:** [AWS CLI](INSTALL-AWS-CLI.md)
 
 ### Requirements
 
@@ -175,9 +173,9 @@ The deploying user/role needs permissions to create:
 - Cross-account role assumption (for organization scanning)
 - S3 permissions to store scan results
 
-Reference: [IAM Permissions Used During Workload Scanning](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/294031/iam-permissions-used-during-workload-scanning)
+Reference: <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/294031/iam-permissions-used-during-workload-scanning" target="_blank">IAM Permissions Used During Workload Scanning</a>
 
 ## References
 
-- [Deploying Agentless Workload Scanning on AWS](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/966589/agentless-workload-scanning)
-- [Agentless Workload Scanning FAQs](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs)
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/966589/agentless-workload-scanning" target="_blank">Deploying Agentless Workload Scanning on AWS</a>
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs" target="_blank">Agentless Workload Scanning FAQs</a>

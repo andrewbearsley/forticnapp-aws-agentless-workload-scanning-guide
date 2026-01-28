@@ -79,7 +79,7 @@ In the Lacework FortiCNAPP console, navigate to **Settings > Integrations > Clou
 - **Target/Monitored Accounts**: Only require IAM snapshot role (`snapshot_role = true`)
 - **Management Account**: Only requires IAM snapshot role (`snapshot_role = true`)
 
-See the [multi-account-multi-region example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/multi-account-multi-region) for a complete example.
+See the <a href="https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/multi-account-multi-region" target="_blank">multi-account-multi-region example</a> for a complete example.
 
 ## Using Existing VPC
 
@@ -155,7 +155,7 @@ module "lacework_aws_agentless_scanning" {
 
 **Note:** When using an existing VPC with `use_internet_gateway = false`, the module assumes internet connectivity already exists via your existing network architecture.
 
-See the [single-account-existing-vpc-networking example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/single-account-existing-vpc-networking) for a complete example.
+See the <a href="https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/single-account-existing-vpc-networking" target="_blank">single-account-existing-vpc-networking example</a> for a complete example.
 
 ## Resources Provisioned
 
@@ -189,7 +189,7 @@ The deploying user/role needs permissions to create:
 - CloudWatch Event Rules and Log Groups
 - Secrets Manager secrets
 
-Reference: [Configuring IAM Permissions for Deployment](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/538280/configuring-iam-permissions-for-deployment)
+Reference: <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/538280/configuring-iam-permissions-for-deployment" target="_blank">Configuring IAM Permissions for Deployment</a>
 
 ### Permissions Used During Workload Scanning
 
@@ -211,11 +211,11 @@ Reference: [Configuring IAM Permissions for Deployment](https://docs.fortinet.co
 - Cross-account role assumption (for organization scanning)
 - S3 permissions to store scan results
 
-Reference: [IAM Permissions Used During Workload Scanning](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/294031/iam-permissions-used-during-workload-scanning)
+Reference: <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/294031/iam-permissions-used-during-workload-scanning" target="_blank">IAM Permissions Used During Workload Scanning</a>
 
 ## References
 
-- [Terraform Module](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest)
-- [Single Account Deployment Guide](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/983212/integrating-agentless-workload-scanning-for-aws-single-account-with-terraform)
-- [Organization Deployment Guide](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/864699/integrating-agentless-workload-scanning-for-aws-organization-account-with-terraform)
-- [lacework generate cloud-account aws](https://docs.fortinet.com/document/forticnapp/latest/cli-reference/635459/lacework-generate-cloud-account-aws)
+- <a href="https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest" target="_blank">Terraform Module</a>
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/983212/integrating-agentless-workload-scanning-for-aws-single-account-with-terraform" target="_blank">Single Account Deployment Guide</a>
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/864699/integrating-agentless-workload-scanning-for-aws-organization-account-with-terraform" target="_blank">Organization Deployment Guide</a>
+- <a href="https://docs.fortinet.com/document/forticnapp/latest/cli-reference/635459/lacework-generate-cloud-account-aws" target="_blank">lacework generate cloud-account aws</a>
