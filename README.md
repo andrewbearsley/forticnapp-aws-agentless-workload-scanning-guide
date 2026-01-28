@@ -1,10 +1,88 @@
-# Lacework FortiCNAPP - AWS Agentless Workload Scanning Architecture and Deployment Details
+# Deployment Guide for FortiCNAPP AWS Agentless Workload Scanning
 
 ## Overview
 
-This repository contains architecture documentation and deployment details for Lacework FortiCNAPP Agentless Workload Scanning on AWS.
+This deployment guide provides step-by-step instructions for deploying FortiCNAPP AWS Agentless Workload Scanning. Agentless workload scanning enables vulnerability scanning for AWS EC2 instances without installing agents on target systems.
 
-FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for cloud workloads without requiring agents to be installed on target systems. This repository documents the architecture, deployment methods, and configuration details for AWS environments.
+This guide covers prerequisites, deployment steps, architecture details, and configuration options for AWS environments.
+
+## Quick Start
+
+### Step 1: Install Prerequisites
+
+Install and configure the required tools:
+
+1. **Lacework CLI**: [Install and Configure Lacework CLI](INSTALL-LACEWORK-CLI.md)
+2. **Terraform**: [Install Terraform](INSTALL-TERRAFORM.md)
+3. **AWS CLI**: [Install and Configure AWS CLI](INSTALL-AWS-CLI.md)
+
+### Step 2: Gather Information
+
+Gather the following information before generating Terraform configuration:
+
+- **Deployment type**: `single-account` or `organization`
+  - Example: `organization`
+- **AWS Account ID (scanning account)**: The account where agentless scanning infrastructure will be deployed
+  - Example: `123456789012`
+- **AWS Regions**: Comma-separated list of regions where EC2 instances will be scanned
+  - Example: `ap-southeast-2,us-east-1`
+- **Organization ID** (for organization deployments): Your AWS Organization ID
+  - Example: `o-abc123def4`
+
+### Step 3: Generate Terraform Configuration
+
+Generate Terraform configuration using the Lacework CLI:
+
+**Single Account:**
+```bash
+lacework generate cloud-account aws \
+  --agentless \
+  --aws_account_id <account-id> \
+  --aws_region <region>
+```
+
+**Organization:**
+```bash
+lacework generate cloud-account aws \
+  --agentless \
+  --organization \
+  --organization_id <org-id> \
+  --aws_account_id <scanning-account-id> \
+  --aws_region <region>
+```
+
+Terraform files are created in `~/lacework/aws` by default.
+
+### Step 4: Authenticate with AWS CLI
+
+```bash
+# Using IAM credentials
+aws configure
+
+# Or using SSO
+aws sso login --profile <profile-name>
+export AWS_PROFILE=<profile-name>
+```
+
+### Step 5: Deploy with Terraform
+
+Navigate to the generated Terraform directory and deploy:
+
+```bash
+cd ~/lacework/aws
+terraform init
+terraform plan
+terraform apply
+```
+
+### Step 6: Verify Integration Status
+
+In the Lacework FortiCNAPP console, navigate to **Settings > Integrations > Cloud accounts**. The status of the integration displays as **Success** if all resources are installed correctly.
+
+Reference:
+- [lacework generate cloud-account aws](https://docs.fortinet.com/document/forticnapp/latest/cli-reference/635459/lacework-generate-cloud-account-aws)
+- [Single account deployment](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/983212/integrating-agentless-workload-scanning-for-aws-single-account-with-terraform)
+- [Organization deployment](https://docs.fortinet.com/document/forticnapp/latest/administration-guide/864699/integrating-agentless-workload-scanning-for-aws-organization-account-with-terraform)
 
 ## How It Works
 
@@ -15,25 +93,9 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for cloud
 4. Snapshots are deleted after scanning
 5. Scan results (metadata) are stored in S3
 6. Lacework retrieves scan results via cross-account IAM role
-
-## Deployment Methods
-
-Both CloudFormation and Terraform are supported. Terraform is typically recommended since the terraform module is flexible to allow for existing networking resources (VPC, subnets, security groups) to be reused in the scanning account.
+7. ECS tasks require outbound internet connectivity to Lacework APIs for configuration updates, diagnostic reporting, and on-demand scan requests
 
 ## Deployment Details
-
-### Agentless Workload Scanning Process
-
-- CloudWatch Event Rules trigger ECS tasks on a scheduled basis
-- The ECS scanning task uses AWS APIs (ec2:CreateSnapshot) to create snapshots of EC2s with attached EBS volumes. These snapshots remain within the AWS organization. 
-- Snapshots are analyzed for vulnerabilities then deleted after scanning.
-- Scan results (metadata) are stored in S3.
-- Lacework uses cross-account IAM role with read-only S3 access to retrieve scan results from the S3 bucket in the nominated AWS scanning account.
-- ECS tasks require outbound internet connectivity to Lacework APIs for configuration updates, diagnostic reporting, and on-demand scan requests (can use Internet Gateway, NAT Gateway, or route through Transit Gateway). 
-
-### FAQs
-
-Docs - https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs
 
 ### Architecture
 - ECS Fargate Cluster including Capacity Providers and Task Definitions
@@ -43,99 +105,61 @@ Docs - https://docs.fortinet.com/document/forticnapp/latest/administration-guide
 - S3 Bucket for storing scan results/metadata
 - CloudWatch Log Groups for ECS task logs
 
-### Account Requirements
+### Terraform Module
+- Terraform module: https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest
+
+### Documentation
+- Single account: https://docs.fortinet.com/document/forticnapp/latest/administration-guide/983212/integrating-agentless-workload-scanning-for-aws-single-account-with-terraform
+- Organization: https://docs.fortinet.com/document/forticnapp/latest/administration-guide/864699/integrating-agentless-workload-scanning-for-aws-organization-account-with-terraform
+- FAQs: https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs
+
+### Terraform Deployment
+
+#### Resources Provisioned
+
+**Global Resources (deployed once per integration):**
+- ECS Cluster (`aws_ecs_cluster.agentless_scan_ecs_cluster`)
+- ECS Cluster Capacity Providers (`aws_ecs_cluster_capacity_providers.agentless_scan_capacity_providers`) - configured for Fargate
+- ECS Task Definition (`aws_ecs_task_definition.agentless_scan_task_definition`)
+- S3 Bucket for storing scan results/metadata
+- AWS Secrets Manager Secret - stores Lacework account and token credentials
+- CloudWatch Log Groups (`aws_cloudwatch_log_group.agentless_scan_log_group`) - for ECS task logs
+
+**Regional Resources (deployed per region):**
+- CloudWatch Event Rules (`aws_cloudwatch_event_rule.agentless_scan_event_rule`) - for scheduled scanning
+- CloudWatch Event Target (`aws_cloudwatch_event_target.agentless_scan_event_target`)
+- VPC, Subnets, Security Groups (can use existing or create new)
+- Internet Gateway (for outbound connectivity)
+- VPC Flow Logs (optional)
+
+**IAM Resources:**
+- Event Role - allows EventBridge to trigger ECS tasks
+- Task Execution Role - grants permissions for ECS tasks to pull container images and publish logs
+- Task Role - provides scanning tasks with permissions for snapshot creation, S3 access, and ECS task management
+
+#### Deployment Scenarios
 
 **Single Account Deployment:**
 - All infrastructure (VPC, ECS, internet egress) is deployed in the same account where workloads are scanned
 
 **Organization Deployment:**
+- **Scanning Account**: Requires VPC with internet egress, ECS Fargate cluster, CloudWatch Event Rules, S3 bucket, and all scanning infrastructure
+- **Target/Monitored Accounts**: Only require IAM snapshot role (`snapshot_role = true`)
+- **Management Account**: Only requires IAM snapshot role (`snapshot_role = true`)
 
-Based on the [Terraform module examples](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest), organization deployments require different resources in different accounts:
+See the [multi-account-multi-region example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/multi-account-multi-region) for a complete example.
 
-- **Scanning Account (where infrastructure is deployed):**
-  - Requires VPC with internet egress (Internet Gateway, NAT Gateway, or Transit Gateway route) - as documented: "ECS tasks require outbound internet connectivity to Lacework APIs"
-  - Requires ECS Fargate cluster, CloudWatch Event Rules, S3 bucket, and all scanning infrastructure
-  - ECS tasks run in this account and use AWS APIs (ec2:CreateSnapshot) to create snapshots in target accounts
-  - Scan results are stored in S3 in the scanning account, and Lacework uses cross-account IAM role to retrieve them
-  - Terraform module creates resources with `global = true` and `regional = true`
-
-- **Target/Monitored Accounts (accounts being scanned):**
-  - **Do NOT require** VPC, internet egress, or scanning infrastructure
-  - Only require IAM snapshot role created with `snapshot_role = true` in the Terraform module
-  - The snapshot role allows the scanning account to assume cross-account permissions to create snapshots
-  - Snapshots are created, analyzed, and deleted within the target account's region via AWS APIs
-
-- **Management Account (AWS Organizations management account):**
-  - Only requires IAM snapshot role created with `snapshot_role = true` in the Terraform module
-  - Used to enumerate accounts and OUs in the organization for scanning
-  - **Do NOT require** VPC, internet egress, or scanning infrastructure
-
-**Evidence:** See the [multi-account-multi-region example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/multi-account-multi-region) in the Terraform registry, which shows:
-- `scanning_account.tf` creates global and regional resources (VPC, ECS, etc.)
-- `monitored_account.tf` only creates `snapshot_role = true` (IAM role only)
-- `management_account.tf` only creates `snapshot_role = true` (IAM role only)
-
-### Terraform Module
-- Terraform module: https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest
-
-### Documentation
-  - Single account: https://docs.fortinet.com/document/forticnapp/latest/administration-guide/983212/integrating-agentless-workload-scanning-for-aws-single-account-with-terraform
-  - Organization: https://docs.fortinet.com/document/forticnapp/latest/administration-guide/864699/integrating-agentless-workload-scanning-for-aws-organization-account-with-terraform
-
-### Deployment Details
-
-The Terraform module provisions the following AWS resources:
-
-**Compute & Orchestration:**
-- ECS Cluster (`aws_ecs_cluster.agentless_scan_ecs_cluster`)
-- ECS Cluster Capacity Providers (`aws_ecs_cluster_capacity_providers.agentless_scan_capacity_providers`) - configured for Fargate
-- ECS Task Definition (`aws_ecs_task_definition.agentless_scan_task_definition`)
-
-**Networking:**
-- VPC (can use existing or create new)
-- Subnets (can use existing or create new)
-- Security Groups (can use existing or create new)
-- Internet Gateway (for outbound connectivity)
-- VPC Flow Logs (optional)
+#### Optional Inputs
 
 **Using Existing Networking Resources:**
 
-The Terraform module supports using existing VPC, subnets, and security groups instead of creating new ones. This applies to both **single account** and **organization deployments**.
+The Terraform module supports using existing VPC, subnets, and security groups instead of creating new ones:
 
-**For Organization Deployments:**
-- VPC/networking configuration is **only needed in the scanning account**
-- Monitored accounts and management accounts **do not require** VPC/networking configuration
-
-To use existing resources in the scanning account's regional modules, set the following module inputs:
 - `use_existing_vpc = true` and provide `vpc_id` - The existing VPC must have an Internet Gateway attached (or set `use_internet_gateway = false` if routing through Transit Gateway/NAT Gateway)
 - `use_existing_subnet = true` and provide `subnet_id` - Only a single subnet is needed
 - `use_existing_security_group = true` and provide `security_group_id`
 
-**Note:** When using an existing VPC, the module will still create a new subnet using `vpc_cidr_block` unless `use_existing_subnet = true` is also set.
-
-See the [single-account-existing-vpc-networking example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/single-account-existing-vpc-networking) for a complete example. The same VPC configuration options apply to the regional modules in organization deployments.
-
-**Scheduling:**
-- CloudWatch Event Rules (`aws_cloudwatch_event_rule.agentless_scan_event_rule`) - for scheduled scanning
-- CloudWatch Event Target (`aws_cloudwatch_event_target.agentless_scan_event_target`)
-
-**Storage:**
-- S3 Bucket - for storing scan results/metadata
-
-**IAM:**
-- IAM Roles:
-  - Event Role - allows EventBridge to trigger ECS tasks
-  - Task Execution Role - grants permissions for ECS tasks to pull container images and publish logs
-  - Task Role - provides scanning tasks with permissions for snapshot creation, S3 access, and ECS task management
-- IAM Policies - associated with the above roles
-
-**Logging & Monitoring:**
-- CloudWatch Log Groups (`aws_cloudwatch_log_group.agentless_scan_log_group`) - for ECS task logs
-
-**Secrets Management:**
-- AWS Secrets Manager Secret - stores Lacework account and token credentials
-
-Reference: https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest
+See the [single-account-existing-vpc-networking example](https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest/examples/single-account-existing-vpc-networking) for a complete example.
 
 ### IAM Permissions
 
