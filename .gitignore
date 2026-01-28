@@ -39,3 +39,8 @@ private/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Agents
+.cursor/
+.claude/
+
