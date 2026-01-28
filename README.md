@@ -45,3 +45,4 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for AWS E
 - <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/966589/agentless-workload-scanning" target="_blank">FortiCNAPP Documentation</a>
 - <a href="https://registry.terraform.io/modules/lacework/agentless-scanning/aws/latest" target="_blank">Terraform Module</a>
 - <a href="https://docs.fortinet.com/document/forticnapp/latest/administration-guide/269317/agentless-workload-scanning-faqs" target="_blank">Agentless Workload Scanning FAQs</a>
+
