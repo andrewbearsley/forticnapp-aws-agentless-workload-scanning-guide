@@ -15,21 +15,21 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for AWS E
 
 ## How It Works
 
-1. CloudWatch Event Rules trigger ECS tasks on a scheduled basis
-2. ECS tasks create snapshots of EC2 instances with attached EBS volumes
-3. Snapshots are analyzed for vulnerabilities within the AWS organization
+1. CloudWatch Event Rules trigger an ECS scanning task, per region, on a scheduled basis.
+2. The ECS scanning task assumes a role in the target account and creates snapshots of EC2 instances with attached EBS volumes.
+3. Snapshots are analyzed for package vulnerabilities and secrets.
 4. Snapshots are deleted after scanning
 5. Scan results (metadata) are stored in S3
-6. Lacework retrieves scan results via cross-account IAM role
+6. Lacework FortiCNAPP retrieves scan results via cross-account IAM role
 
 ## Architecture
 
 Infrastructure is deployed in a dedicated **scanning account**:
 
-- **Compute**: ECS Fargate Cluster with scheduled tasks (one per region)
-- **Networking**: VPC with outbound internet connectivity (one per region)
+- **Compute**: ECS Fargate Cluster (one per region) with scheduled scanning tasks
+- **Networking**: VPC with outbound internet connectivity (one per region) in the AWS scanning account (where the ECS cluster is deployed)
 - **Storage**: S3 Bucket for scan results/metadata
-- **IAM**: Cross-account roles for Lacework access and snapshot creation
+- **IAM**: Cross-account roles for snapshot creation and Lacework FortiCNAPP S3 read access
 - **Logging**: CloudWatch Log Groups for ECS task logs
 
 ## Prerequisites
@@ -40,7 +40,7 @@ Infrastructure is deployed in a dedicated **scanning account**:
 - [Terraform](INSTALL-TERRAFORM.md)
 
 **CloudFormation:**
-- [AWS CLI](INSTALL-AWS-CLI.md) (optional - only needed if using existing VPC)
+- [AWS CLI](INSTALL-AWS-CLI.md) (optional)
 
 ## Resources
 
