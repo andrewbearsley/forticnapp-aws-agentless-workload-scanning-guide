@@ -27,7 +27,7 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for AWS E
 Infrastructure is deployed in a dedicated **scanning account**:
 
 - **Compute**: ECS Fargate Cluster with scheduled tasks (one per region)
-- **Networking**: VPC with outbound internet connectivity (one per region, can use existing)
+- **Networking**: VPC with outbound internet connectivity (one per region)
 - **Storage**: S3 Bucket for scan results/metadata
 - **IAM**: Cross-account roles for Lacework access and snapshot creation
 - **Logging**: CloudWatch Log Groups for ECS task logs
