@@ -20,16 +20,18 @@ Deploy from FortiCNAPP UI in your **scanning account** (where scanning infrastru
 4. In Step 1 "Set up AWS Scanning Account", click **Launch Stack**
 5. AWS CloudFormation console opens with template pre-filled
 6. Fill in parameters:
-   - **Regions**: e.g., `ap-southeast-2`
+   - **Regions**: Comma-separated list, e.g., `ap-southeast-1,ap-southeast-2`
    - **VPCQuotaCheck**: `Yes`
    - **ResourceNamePrefix**: e.g., `lacework-agentless`
    - **ResourceNameSuffix**: e.g., `acme`
 7. Click **Create stack** and wait for completion
 8. Save the stack outputs: `CrossAccountRoleArn`, `ECSTaskRoleArn`, `S3BucketArn`, `ExternalId`
 
-### Step 2: Deploy Snapshot Roles (Organization)
+### Step 2: Deploy Snapshot Roles (Optional - Organization Only)
 
-Deploy from your **management account** using StackSets to create snapshot roles in monitored accounts:
+**Skip this step if scanning a single account.**
+
+For AWS Organizations, deploy from your **management account** using StackSets to create snapshot roles in monitored accounts:
 
 1. Return to FortiCNAPP UI setup wizard
 2. In Step 2 "Integrate AWS Scanning Account with your AWS Organization", click **Launch Stack**
@@ -54,7 +56,9 @@ CloudFormation templates are generated from the FortiCNAPP UI with account-speci
 
 ## Using Existing VPC (Optional)
 
-Unlike Terraform, CloudFormation creates a new VPC by default. To use an existing VPC, update the ECS service after deployment.
+Unlike Terraform, CloudFormation creates a new VPC by default (one per selected region). To use an existing VPC, update the ECS service after deployment.
+
+**Note:** Repeat this process for each region where you want to use an existing VPC.
 
 **Prerequisites:** [AWS CLI](INSTALL-AWS-CLI.md)
 
@@ -69,13 +73,16 @@ Unlike Terraform, CloudFormation creates a new VPC by default. To use an existin
 ### Step 1: Find ECS Resources
 
 ```bash
+# Set the region
+REGION="ap-southeast-2"
+
 # Find the ECS cluster
-CLUSTER=$(aws ecs list-clusters \
+CLUSTER=$(aws ecs list-clusters --region $REGION \
   --query 'clusterArns[?contains(@, `lacework`)]' \
   --output text | awk -F'/' '{print $NF}')
 
 # Find the service
-SERVICE=$(aws ecs list-services \
+SERVICE=$(aws ecs list-services --region $REGION \
   --cluster $CLUSTER \
   --query 'serviceArns[0]' \
   --output text | awk -F'/' '{print $NF}')
@@ -92,7 +99,7 @@ EXISTING_SUBNET="subnet-xxxxxxxxx"
 EXISTING_SECURITY_GROUP="sg-xxxxxxxxx"
 
 # Update service network configuration
-aws ecs update-service \
+aws ecs update-service --region $REGION \
   --cluster $CLUSTER \
   --service $SERVICE \
   --network-configuration "awsvpcConfiguration={
@@ -103,26 +110,26 @@ aws ecs update-service \
   --force-new-deployment
 
 # Wait for service to stabilize
-aws ecs wait services-stable --cluster $CLUSTER --services $SERVICE
+aws ecs wait services-stable --region $REGION --cluster $CLUSTER --services $SERVICE
 ```
 
 ### Step 3: Verify the Update
 
 ```bash
 # Check service status
-aws ecs describe-services \
+aws ecs describe-services --region $REGION \
   --cluster $CLUSTER \
   --services $SERVICE \
   --query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount}'
 
 # Verify tasks are in correct subnet
-TASK_ARN=$(aws ecs list-tasks \
+TASK_ARN=$(aws ecs list-tasks --region $REGION \
   --cluster $CLUSTER \
   --service-name $SERVICE \
   --query 'taskArns[0]' \
   --output text)
 
-aws ecs describe-tasks \
+aws ecs describe-tasks --region $REGION \
   --cluster $CLUSTER \
   --tasks $TASK_ARN \
   --query 'tasks[0].attachments[0].details[?name==`subnetId`].value' \
@@ -139,16 +146,16 @@ aws ecs describe-tasks \
 
 ## Resources Provisioned
 
-**Scanning Account Stack:**
-- VPC with network infrastructure
-- ECS cluster and service
+**Scanning Account Stack (per selected region):**
+- VPC with network infrastructure (one per region)
+- ECS cluster and service (one per region)
 - S3 bucket for scan results
 - IAM roles (cross-account role, task role, task execution role)
 - CloudWatch log groups
 
-**Snapshot Roles Stack (via StackSets):**
+**Snapshot Roles Stack (Optional - Organization Only):**
 - IAM snapshot roles in all monitored accounts
-- Deployed from management account across AWS Organization
+- Deployed from management account via StackSets across AWS Organization
 
 ## IAM Permissions
 
