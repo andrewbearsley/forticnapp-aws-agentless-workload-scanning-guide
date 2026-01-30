@@ -56,7 +56,7 @@ CloudFormation templates are generated from the FortiCNAPP UI with account-speci
 
 ## Using Existing VPC (Optional)
 
-Unlike Terraform, CloudFormation creates a new VPC by default (one per selected region). To use an existing VPC, update the ECS service after deployment.
+CloudFormation creates a new VPC by default (one per selected region). To use an existing VPC, update the ECS service after deployment.
 
 **Note:** Repeat this process for each region where you want to use an existing VPC.
 
