@@ -8,10 +8,8 @@ FortiCNAPP Agentless Workload Scanning provides vulnerability scanning for AWS E
 
 ## Deployment Methods
 
-| Method | Guide |
-|--------|-------|
-| **Terraform** | [Deploy with Terraform](DEPLOY-TERRAFORM.md) |
-| **CloudFormation** | [Deploy with CloudFormation](DEPLOY-CLOUDFORMATION.md) |
+- [Deploy with Terraform](DEPLOY-TERRAFORM.md)
+- [Deploy with CloudFormation](DEPLOY-CLOUDFORMATION.md)
 
 ## How It Works
 
